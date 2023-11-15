@@ -682,7 +682,7 @@ impl<'de> de::Deserialize<'de> for Color {
             where
                 E: de::Error,
             {
-                if value.len() != 7 {
+                if value.len() != 7 && value.len() != 9 {
                     return Err(E::invalid_length(value.len(), &self));
                 }
 

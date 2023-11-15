@@ -241,3 +241,18 @@ impl RegistrationParams {
         })
     }
 }
+
+#[cfg(test)]
+mod test {
+    use super::RegistrationInfo;
+    use std::fs;
+
+    #[test]
+    fn reg_info() {
+
+        let reg_info_json = fs::read_to_string("test-samples/reg-info.json")
+        .expect("Should have been able to read the file");
+
+        let reg_info: RegistrationInfo = serde_json::from_str(&reg_info_json).expect("Successful deserialisation of RegistrationInfo");
+    }
+}
