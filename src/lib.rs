@@ -195,6 +195,62 @@ pub enum Message<G, S, M> {
     ///
     /// [Official Documentation](https://developer.elgato.com/documentation/stream-deck/sdk/events-received/#systemdidwakeup)
     SystemDidWakeUp,
+/// When the user touches the display, the plugin will receive the touchTap event.
+    ///
+    /// [Official Documentation](https://docs.elgato.com/sdk/plugins/events-received#touchtap-sd+)
+    #[serde(rename_all = "camelCase")]
+    TouchTap {
+        /// The uuid of the action.
+        action: String,
+        /// The instance of the action (key or part of a multiaction).
+        context: String,
+        /// The device where the key was pressed.
+        device: String,
+        /// The current settings for the action.
+        payload: DialPayload<G>,
+    },
+    /// When the user presses the encoder down, the plugin will receive the dialDown event (SD+).
+    ///
+    /// [Official Documentation](https://docs.elgato.com/sdk/plugins/events-received#dialrotate-sd+)
+    #[serde(rename_all = "camelCase")]
+    DialDown {
+        /// The uuid of the action.
+        action: String,
+        /// The instance of the action (key or part of a multiaction).
+        context: String,
+        /// The device where the key was pressed.
+        device: String,
+        /// The current settings for the action.
+        payload: DialPayload<G>,
+    },
+    /// When the user releases a pressed encoder, the plugin will receive the dialUp event (SD+).
+    ///
+    /// [Official Documentation](https://docs.elgato.com/sdk/plugins/events-received#dialdown-sd+)
+    #[serde(rename_all = "camelCase")]
+    DialUp {
+        /// The uuid of the action.
+        action: String,
+        /// The instance of the action (key or part of a multiaction).
+        context: String,
+        /// The device where the key was pressed.
+        device: String,
+        /// The current settings for the action.
+        payload: DialPayload<G>,
+    },
+    /// When the user rotates the encoder, the plugin will receive the dialRotate event.
+    ///
+    /// [Official Documentation](https://docs.elgato.com/sdk/plugins/events-received#dialup-sd+)
+    #[serde(rename_all = "camelCase")]
+    DialRotate {
+        /// The uuid of the action.
+        action: String,
+        /// The instance of the action (key or part of a multiaction).
+        context: String,
+        /// The device where the key was pressed.
+        device: String,
+        /// The current settings for the action.
+        payload: DialPayload<G>,
+    },
     /// An event from an unsupported version of the Stream Deck software.
     ///
     /// This occurs when the Stream Deck software sends an event that is not
@@ -338,6 +394,31 @@ pub enum MessageOut<G, S, M> {
         /// The message to log.
         payload: LogMessagePayload,
     },
+/// Change properties of items on the Stream Deck + touch display layout.
+    ///
+    /// [Official Documentation](https://docs.elgato.com/sdk/plugins/events-sent#setfeedback-sd+)
+    #[serde(rename_all = "camelCase")]
+    SetFeedback {
+        /// The instance of the action (key or part of a multiaction).
+        context: String,
+        payload: FeedbackPayload,
+    },
+    /// Changes the layout for touch action.
+    ///
+    /// [Official Documentation](https://docs.elgato.com/sdk/plugins/events-sent#setfeedbacklayout-sd+)
+    #[serde(rename_all = "camelCase")]
+    SetFeedbackLayout {
+        /// The instance of the action (key or part of a multiaction).
+        context: String,
+    },
+    /// Sets the trigger descriptions associated with an encoder (touch display + dial) action instance
+    ///
+    /// [Official Documentation](https://docs.elgato.com/sdk/plugins/events-sent#settriggerdescription-sd+)
+    #[serde(rename_all = "camelCase")]
+    SetTriggerDescription {
+        /// The instance of the action (key or part of a multiaction).
+        context: String,
+    },
 }
 
 /// The target of a command.
@@ -412,6 +493,34 @@ pub struct UrlPayload {
     pub url: String,
 }
 
+
+#[derive(Debug, Deserialize, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct IndicatorValues {
+    pub value: Option<u16>,
+    pub enabled: Option<bool>,
+}
+
+/// Payload for the setFeedback event
+///
+/// [Official Documentation](https://docs.elgato.com/sdk/plugins/events-sent#setfeedback-sd+)
+#[derive(Debug, Deserialize, Serialize, Default)]
+#[serde(rename_all = "camelCase")]
+pub struct FeedbackPayload {
+    pub title: Option<String>,
+    pub icon: Option<String>,
+    /// Value for touch panel layouts
+    pub value: Option<String>,
+
+    /// Indicator values for touch panel Indicator Layout ($B1) 
+    pub indicator: Option<IndicatorValues>,
+
+    /// Indicator values for touch panel Double Indicator Layout ($C1)
+    pub indicator1: Option<IndicatorValues>,
+    /// Indicator values for touch panel Double Indicator Layout ($C1)
+    pub indicator2: Option<IndicatorValues>,
+}
+
 /// Additional information about the key pressed.
 #[derive(Debug, Deserialize, Serialize)]
 #[serde(rename_all = "camelCase")]
@@ -425,6 +534,22 @@ pub struct KeyPayload<S> {
     /// The desired state of the action instance (if this instance is part of a multi action).
     pub user_desired_state: Option<u8>,
     //TODO: is_in_multi_action ignored. replace coordinates with enum Location { Coordinates, MultiAction }.
+}
+
+/// Additional information about the dial rotated.
+///
+/// [Official Documentation](https://docs.elgato.com/sdk/plugins/events-received#dialrotate-sd+)
+#[derive(Debug, Deserialize, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct DialPayload<S> {
+    /// The stored settings for the action instance.
+    pub settings: S,
+    /// The location of the key that was pressed, or None if this action instance is part of a multi action.
+    pub coordinates: Option<Coordinates>,
+    /// The integer which holds the number of "ticks" on encoder rotation. Positive values are for clockwise rotation, negative values are for counterclockwise rotation, zero value is never happen.
+    pub ticks: Option<i8>,
+    /// Boolean which is true on rotation when encoder pressed
+    pub pressed: Option<bool>,
 }
 
 /// Additional information about a key's appearance.
